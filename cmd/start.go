@@ -14,7 +14,6 @@ import (
 
 var (
 	g       errgroup.Group
-	servers map[string]*http.Server
 	msg404  = "服务器开小差了，很快就好，稍后再刷新试试吧~"
 )
 
@@ -69,6 +68,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	servers := make(map[string]*http.Server, 0)
 
 	servers["home"] = &http.Server{
 		Addr:           port,
