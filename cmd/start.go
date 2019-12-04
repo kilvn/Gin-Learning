@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"gin/internal/databases/mysql"
 	"gin/internal/util"
 	"gin/routers"
@@ -10,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
 	"time"
 )
 
@@ -25,10 +23,10 @@ func routerHome(router *gin.Engine) http.Handler {
 	e := gin.New()
 	e.Use(gin.Recovery())
 
-	routers.StuffHttp(router)
-
 	// 404页面
 	router.NoRoute(htmlPage404)
+
+	routers.StuffHttp(router)
 
 	return e
 }
@@ -38,16 +36,20 @@ func routerApi(router *gin.Engine) http.Handler {
 	e := gin.New()
 	e.Use(gin.Recovery())
 
-	routers.StuffApi(router)
-
 	// 404页面
 	router.NoRoute(ApiPage404)
+
+	routers.StuffApi(router)
 
 	return e
 }
 
 func main() {
 	gin.SetMode(gin.DebugMode)
+
+	defer func() {
+		mysql.Close()
+	}()
 
 	router := gin.Default()
 
@@ -56,68 +58,43 @@ func main() {
 	router.LoadHTMLGlob(util.GetParentDirectory(rootPath) + "/app/view/**/*")
 
 	// 加载 home 路由
-	home := routerHome(router)
+	homeHandler := routerHome(router)
 
 	// 加载 api 路由
-	api := routerApi(router)
+	apiHandler := routerApi(router)
 
-	defer func() {
-		mysql.Close()
-	}()
+	port := ":8888"
 
-	port := "8888"
-
-	err := router.Run(":" + port)
+	err := router.Run(port)
 	if err != nil {
 		panic(err)
 	}
 
 	servers["home"] = &http.Server{
-		Addr:         ":" + port,
-		Handler:      home,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		Addr:           port,
+		Handler:        homeHandler,
+		ReadTimeout:    5 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
 	}
 
 	servers["api"] = &http.Server{
-		Addr:         ":" + port,
-		Handler:      api,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		Addr:           port,
+		Handler:        apiHandler,
+		ReadTimeout:    5 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
 	}
 
 	for _, server := range servers {
-		//go start(server, router)
 		g.Go(func() error {
 			return server.ListenAndServe()
 		})
 	}
 
 	if err := g.Wait(); err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
-}
-
-func start(srv *http.Server, router *gin.Engine) {
-	go func() {
-		// 服务连接
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Printf("listen: %s\n", err)
-		}
-	}()
-
-	// 等待中断信号以优雅地关闭服务器（设置 5 秒的超时时间）
-	quit := make(chan os.Signal)
-	signal.Notify(quit, os.Interrupt)
-	<-quit
-	log.Println("Shutdown Server ...")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Println("Server Shutdown:", err)
-	}
-	log.Println("Server exiting")
 }
 
 // 404 页面
