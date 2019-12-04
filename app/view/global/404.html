@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-dns-prefetch-control" content="on"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta content="telephone=no" name="format-detection"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
+    <title>404页面</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            color: #817577;
+            text-align: center;
+        }
+
+        .wrong-main {
+            width: 90%;
+            margin: 180px auto 0
+        }
+
+        .wrong-icon {
+            display: block;
+        }
+
+        .wrong-icon img {
+            max-width: 300px;
+        }
+
+        .wrong-txt {
+            margin-top: 30px;
+            display: block;
+        }
+
+        @media only screen and (max-width: 380px) {
+            .wrong-txt {
+                font-size: .8rem
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="wrong-main">
+    <div class="wrong-icon">
+        <img src="https://img.alicdn.com/imgextra/i3/97012073/TB2DHjloY4npuFjSZFmXXXl4FXa_!!97012073.png" width="100%">
+    </div>
+    <div class="wrong-txt">
+        <p>{{ .message }}</p>
+    </div>
+</div>
+</body>
+</html>
