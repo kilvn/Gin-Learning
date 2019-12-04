@@ -17,6 +17,7 @@ import (
 var (
 	g       errgroup.Group
 	servers map[string]*http.Server
+	msg404  = "服务器开小差了，很快就好，稍后再刷新试试吧~"
 )
 
 // home
@@ -122,13 +123,13 @@ func start(srv *http.Server, router *gin.Engine) {
 // 404 页面
 func htmlPage404(c *gin.Context) {
 	c.HTML(http.StatusNotFound, "404.html", gin.H{
-		"message": "服务器开小差了，很快就好，稍后再刷新试试吧~",
+		"message": msg404,
 	})
 }
 
 // 404 页面
 func ApiPage404(c *gin.Context) {
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "服务器开小差了，很快就好，稍后再刷新试试吧~",
+	c.JSON(http.StatusNotFound, gin.H{
+		"message": msg404,
 	})
 }
